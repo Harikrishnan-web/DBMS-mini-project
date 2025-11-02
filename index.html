@@ -1,0 +1,507 @@
+<!-- FILE: index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOOK Hive - Collaborative Reading Community Platform</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Set Inter font as default -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+    <!-- Load React, ReactDOM, and Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root">
+        <!-- React application will be mounted here -->
+    </div>
+
+    <!-- 
+        The React code (JSX) is placed inside a script block 
+        with type="text/babel" so Babel can transpile it in the browser.
+    -->
+    <script type="text/babel">
+        // --- START App.jsx CODE ---
+        import React, { useState, useMemo } from 'react';
+        import { BookOpen, Users, Star, PlusCircle, LayoutDashboard, User } from 'lucide-react';
+
+        // --- MOCK DATABASE DATA (Based on Report's DML) ---
+        const MOCK_USERS = [
+          { user_id: 1, username: 'bookworm_max', email: 'max@example.com' },
+          { user_id: 2, username: 'literature_lily', email: 'lily@example.com' },
+        ];
+
+        let MOCK_BOOKS = [
+          { book_isbn: '9781234567890', title: 'The Midnight Library', author: 'Matt Haig', genre: 'Fantasy', publication_year: 2020 },
+          { book_isbn: '9780590353403', title: 'Harry Potter and the Sorcerer\'s Stone', author: 'J.K. Rowling', genre: 'Fantasy', publication_year: 1997 },
+          { book_isbn: '9780061120084', title: 'To Kill a Mockingbird', author: 'Harper Lee', genre: 'Classic', publication_year: 1960 },
+          { book_isbn: '9781984801934', title: 'Project Hail Mary', author: 'Andy Weir', genre: 'Sci-Fi', publication_year: 2021 },
+        ];
+
+        let MOCK_POSTS = [
+          // Max's posts
+          { post_id: 1, user_id: 1, book_isbn: '9781234567890', post_type: 'Review', content_text: 'An uplifting and thought-provoking novel about life choices.', rating: 5, created_at: '2025-10-28T10:00:00Z' },
+          { post_id: 3, user_id: 1, book_isbn: '9780590353403', post_type: 'Review', content_text: 'A magical start to an iconic series. Pure nostalgia!', rating: 4, created_at: '2025-09-15T15:30:00Z' },
+          // Lily's posts
+          { post_id: 2, user_id: 2, book_isbn: '9781234567890', post_type: 'Summary', content_text: 'Nora visits a library where she can explore different versions of her life.', rating: null, created_at: '2025-10-29T11:00:00Z' },
+          { post_id: 4, user_id: 2, book_isbn: '9780061120084', post_type: 'Review', content_text: 'A powerful story about justice and childhood innocence in the American South.', rating: 5, created_at: '2025-08-01T09:00:00Z' },
+          // Additional posts for reporting
+          { post_id: 5, user_id: 1, book_isbn: '9781984801934', post_type: 'Review', content_text: 'Incredible sci-fi adventure!', rating: 5, created_at: '2025-11-01T12:00:00Z' },
+          { post_id: 6, user_id: 2, book_isbn: '9781984801934', post_type: 'Review', content_text: 'Highly recommended for space lovers.', rating: 5, created_at: '2025-11-02T13:00:00Z' },
+          { post_id: 7, user_id: 1, book_isbn: '9781984801934', post_type: 'Review', content_text: 'A truly genius plot.', rating: 5, created_at: '2025-11-03T14:00:00Z' },
+          { post_id: 8, user_id: 2, book_isbn: '9781984801934', post_type: 'Summary', content_text: 'The story of Ryland Grace and the mission to save Earth.', rating: null, created_at: '2025-11-04T15:00:00Z' },
+        ];
+
+        let nextPostId = MOCK_POSTS.length + 1;
+        let nextBookIsbn = 1234567891; // Mocking next ISBN for new books
+
+        // --- UTILITY FUNCTIONS TO SIMULATE SQL QUERIES ---
+
+        /**
+         * Simulates the "Top 5 Most Reviewed Books" query (Joins and Aggregation).
+         * @param {Array} posts - Mock Post table data.
+         * @param {Array} books - Mock Book table data.
+         * @returns {Array} - The top 5 reviewed books with aggregated stats.
+         */
+        const getTopReviewedBooks = (posts, books) => {
+          const reviews = posts.filter(p => p.post_type === 'Review' && p.rating !== null);
+
+          const bookStats = reviews.reduce((acc, post) => {
+            const isbn = post.book_isbn;
+            if (!acc[isbn]) {
+              acc[isbn] = { total_reviews: 0, total_rating: 0, book: books.find(b => b.book_isbn === isbn) };
+            }
+            acc[isbn].total_reviews += 1;
+            acc[isbn].total_rating += post.rating;
+            return acc;
+          }, {});
+
+          const results = Object.values(bookStats)
+            .map(stat => ({
+              title: stat.book?.title || 'Unknown Title',
+              author: stat.book?.author || 'Unknown Author',
+              total_reviews: stat.total_reviews,
+              average_rating: (stat.total_rating / stat.total_reviews).toFixed(2),
+            }))
+            .sort((a, b) => b.total_reviews - a.total_reviews)
+            .slice(0, 5); // LIMIT 5
+
+          return results;
+        };
+
+        // --- REACT COMPONENTS ---
+
+        // Generic Card component for aesthetics
+        const Card = ({ children, className = '' }) => (
+          <div className={`bg-white shadow-xl rounded-xl p-4 md:p-6 ${className}`}>
+            {children}
+          </div>
+        );
+
+        // Renders the Top 5 Reports (Simulating Joins and Aggregation Query)
+        const Dashboard = ({ posts, books }) => {
+          const topBooks = useMemo(() => getTopReviewedBooks(posts, books), [posts, books]);
+
+          return (
+            <Card className="col-span-1 md:col-span-2">
+              <h2 className="text-2xl font-bold mb-6 flex items-center text-indigo-700">
+                <LayoutDashboard className="w-6 h-6 mr-2" /> Community Reports: Top 5 Most Reviewed Books
+              </h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-indigo-200">
+                  <thead className="bg-indigo-50">
+                    <tr>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Book Title</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
+                      <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Total Reviews</th>
+                      <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. Rating</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {topBooks.map((book, index) => (
+                      <tr key={index} className="hover:bg-indigo-50">
+                        <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{book.title}</td>
+                        <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-600">{book.author}</td>
+                        <td className="px-3 py-4 whitespace-nowrap text-sm text-center text-gray-600">{book.total_reviews}</td>
+                        <td className="px-3 py-4 whitespace-nowrap text-sm text-center font-bold text-green-700">{book.average_rating} <Star className="w-4 h-4 inline-block align-text-bottom text-yellow-500 fill-yellow-500" /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {topBooks.length === 0 && <p className="text-gray-500 text-center mt-4">No reviews found yet.</p>}
+            </Card>
+          );
+        };
+
+        // Renders a specific User's Post History (Simulating Retrieval Query with Joins)
+        const UserProfile = ({ posts, books, user }) => {
+          // Simulate the User's Profile View Query
+          const userPosts = useMemo(() => {
+            return posts
+              .filter(p => p.user_id === user.user_id)
+              .map(post => {
+                const book = books.find(b => b.book_isbn === post.book_isbn);
+                return {
+                  ...post,
+                  book_title: book?.title || 'Book Not Found',
+                };
+              })
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          }, [posts, books, user]);
+
+          return (
+            <Card className="col-span-1 md:col-span-2">
+              <h2 className="text-2xl font-bold mb-6 flex items-center text-indigo-700">
+                <User className="w-6 h-6 mr-2" /> {user.username}'s Posting History
+              </h2>
+
+              {userPosts.length === 0 ? (
+                <p className="text-gray-500 italic">No posts found for this user.</p>
+              ) : (
+                <div className="space-y-6">
+                  {userPosts.map((post) => (
+                    <div key={post.post_id} className="border-l-4 border-indigo-400 pl-4 py-2 bg-gray-50 rounded-lg shadow-sm">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          post.post_type === 'Review' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {post.post_type}
+                        </span>
+                        <span className="text-xs text-gray-500">{new Date(post.created_at).toLocaleDateString()}</span>
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-800">
+                        <BookOpen className="w-4 h-4 inline-block mr-1 align-text-bottom" /> {post.book_title}
+                      </h3>
+                      {post.rating && (
+                        <div className="flex items-center text-sm text-yellow-500 mt-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className={`w-4 h-4 ${i < post.rating ? 'fill-yellow-500' : ''}`} />
+                          ))}
+                          <span className="ml-1 text-gray-600">({post.rating} / 5)</span>
+                        </div>
+                      )}
+                      <p className="text-gray-700 mt-2 italic">{post.content_text}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          );
+        };
+
+        // Form for submitting new content (Simulating DML Insertion)
+        const NewPostForm = ({ currentUserId, onPostSubmit, books }) => {
+          const [postData, setPostData] = useState({
+            book_title: '',
+            author: '',
+            post_type: 'Review',
+            rating: 5,
+            content_text: '',
+            new_book: false
+          });
+          const [message, setMessage] = useState('');
+          const [isError, setIsError] = useState(false);
+
+          const handleChange = (e) => {
+            const { name, value, type, checked } = e.target;
+            setPostData(prev => ({
+              ...prev,
+              [name]: type === 'checkbox' ? checked : value
+            }));
+          };
+
+          const handleSubmit = (e) => {
+            e.preventDefault();
+
+            const user = MOCK_USERS.find(u => u.user_id === currentUserId);
+            if (!user) {
+              setIsError(true);
+              setMessage('Authentication error. Cannot find user.');
+              return;
+            }
+
+            let bookIsbn = '';
+            // 1. Check if it's a new book
+            if (postData.new_book) {
+              if (!postData.book_title || !postData.author) {
+                setIsError(true);
+                setMessage('New books require a Title and Author.');
+                return;
+              }
+              // Simulate ISBN creation and Book DML insertion
+              bookIsbn = (nextBookIsbn++).toString();
+              onPostSubmit({ ...postData, user_id: currentUserId, book_isbn: bookIsbn, isNewBook: true });
+            } else {
+              // 2. Try to find existing book by title (Simplified lookup)
+              const existingBook = books.find(b => b.title.toLowerCase() === postData.book_title.toLowerCase());
+              if (!existingBook) {
+                setIsError(true);
+                setMessage('Book not found. Please check "Is this a New Book?"');
+                return;
+              }
+              bookIsbn = existingBook.book_isbn;
+              onPostSubmit({ ...postData, user_id: currentUserId, book_isbn: bookIsbn, isNewBook: false });
+            }
+
+            setIsError(false);
+            setMessage(`Successfully submitted new ${postData.post_type} for "${postData.book_title}"!`);
+
+            // Reset form
+            setPostData({
+              book_title: '',
+              author: '',
+              post_type: 'Review',
+              rating: 5,
+              content_text: '',
+              new_book: false
+            });
+          };
+
+          const currentUsername = MOCK_USERS.find(u => u.user_id === currentUserId)?.username || 'Guest';
+
+          return (
+            <Card className="col-span-1 md:col-span-2">
+              <h2 className="text-2xl font-bold mb-6 flex items-center text-indigo-700">
+                <PlusCircle className="w-6 h-6 mr-2" /> Create New Post
+              </h2>
+              <p className="mb-4 text-sm text-gray-600">Posting as: <span className="font-semibold">{currentUsername}</span></p>
+
+              {message && (
+                <div className={`p-3 mb-4 rounded-lg text-sm ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                  {message}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Book Title */}
+                <div>
+                  <label htmlFor="book_title" className="block text-sm font-medium text-gray-700">Book Title</label>
+                  <input
+                    type="text"
+                    id="book_title"
+                    name="book_title"
+                    value={postData.book_title}
+                    onChange={handleChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
+                    required
+                  />
+                </div>
+
+                {/* New Book Checkbox */}
+                <div className="flex items-center">
+                  <input
+                    id="new_book"
+                    name="new_book"
+                    type="checkbox"
+                    checked={postData.new_book}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                  />
+                  <label htmlFor="new_book" className="ml-2 block text-sm font-medium text-gray-700">
+                    Is this a New Book (not yet in the system)?
+                  </label>
+                </div>
+
+                {/* Author (Only visible for new books) */}
+                {postData.new_book && (
+                  <div>
+                    <label htmlFor="author" className="block text-sm font-medium text-gray-700">Author</label>
+                    <input
+                      type="text"
+                      id="author"
+                      name="author"
+                      value={postData.author}
+                      onChange={handleChange}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
+                      required={postData.new_book}
+                    />
+                  </div>
+                )}
+
+                {/* Post Type & Rating */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="post_type" className="block text-sm font-medium text-gray-700">Content Type</label>
+                    <select
+                      id="post_type"
+                      name="post_type"
+                      value={postData.post_type}
+                      onChange={handleChange}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
+                    >
+                      <option value="Review">Review</option>
+                      <option value="Summary">Summary</option>
+                    </select>
+                  </div>
+                  {postData.post_type === 'Review' && (
+                    <div>
+                      <label htmlFor="rating" className="block text-sm font-medium text-gray-700">Rating (1-5)</label>
+                      <input
+                        type="number"
+                        id="rating"
+                        name="rating"
+                        min="1"
+                        max="5"
+                        value={postData.rating}
+                        onChange={handleChange}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
+                        required
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Content Text */}
+                <div>
+                  <label htmlFor="content_text" className="block text-sm font-medium text-gray-700">Content (Review/Summary)</label>
+                  <textarea
+                    id="content_text"
+                    name="content_text"
+                    rows="4"
+                    value={postData.content_text}
+                    onChange={handleChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
+                    required
+                  ></textarea>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150"
+                >
+                  Post to BOOK Hive
+                </button>
+              </form>
+            </Card>
+          );
+        };
+
+
+        // Main App Component
+        const App = () => {
+          const [currentPage, setCurrentPage] = useState('dashboard');
+          const [currentUserId, setCurrentUserId] = useState(1); // Default to 'bookworm_max'
+          const [posts, setPosts] = useState(MOCK_POSTS);
+          const [books, setBooks] = useState(MOCK_BOOKS);
+
+          const handlePostSubmit = (newPostData) => {
+            // Simulate DML insertion into the Post table
+            const newPost = {
+              post_id: nextPostId++,
+              user_id: newPostData.user_id,
+              book_isbn: newPostData.book_isbn,
+              post_type: newPostData.post_type,
+              content_text: newPostData.content_text,
+              rating: newPostData.post_type === 'Review' ? parseInt(newPostData.rating, 10) : null,
+              created_at: new Date().toISOString(),
+            };
+
+            // Simulate DML insertion into the Book table if it's new
+            if (newPostData.isNewBook) {
+              const newBookEntry = {
+                book_isbn: newPostData.book_isbn,
+                title: newPostData.book_title,
+                author: newPostData.author,
+                genre: 'Community Added',
+                publication_year: new Date().getFullYear(),
+              };
+              setBooks(prevBooks => [...prevBooks, newBookEntry]);
+            }
+
+            setPosts(prevPosts => [...prevPosts, newPost]);
+            setCurrentPage('profile'); // Navigate to profile after posting
+          };
+
+          const user = MOCK_USERS.find(u => u.user_id === currentUserId) || MOCK_USERS[0];
+
+          const renderContent = () => {
+            switch (currentPage) {
+              case 'dashboard':
+                return <Dashboard posts={posts} books={books} />;
+              case 'profile':
+                return <UserProfile posts={posts} books={books} user={user} />;
+              case 'new_post':
+                return <NewPostForm currentUserId={currentUserId} onPostSubmit={handlePostSubmit} books={books} />;
+              default:
+                return <Dashboard posts={posts} books={books} />;
+            }
+          };
+
+          const NavItem = ({ name, icon: Icon, pageKey }) => (
+            <button
+              onClick={() => setCurrentPage(pageKey)}
+              className={`flex items-center justify-center md:justify-start w-full px-4 py-3 rounded-xl transition-colors duration-200 
+                ${currentPage === pageKey 
+                  ? 'bg-indigo-600 text-white shadow-lg' 
+                  : 'text-indigo-800 hover:bg-indigo-100 hover:text-indigo-700'
+                }`}
+            >
+              <Icon className="w-5 h-5 md:mr-3" />
+              <span className="hidden md:block font-medium">{name}</span>
+            </button>
+          );
+
+          return (
+            <div className="min-h-screen bg-gray-100 font-sans p-2 sm:p-4">
+              <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                
+                {/* Sidebar / Mobile Navbar */}
+                <div className="md:col-span-1 lg:col-span-1 flex flex-col space-y-4 md:space-y-6">
+                  
+                  {/* Logo and Title */}
+                  <div className="bg-white rounded-xl shadow-xl p-4 hidden md:block">
+                    <h1 className="text-3xl font-extrabold text-indigo-700 flex items-center">
+                      <BookOpen className="w-8 h-8 mr-2 text-indigo-500" />
+                      BOOK Hive
+                    </h1>
+                    <p className="text-sm text-gray-500 mt-1">Collaborative Reading Community</p>
+                  </div>
+
+                  {/* Navigation Menu */}
+                  <Card className="p-2 md:p-4 flex md:flex-col justify-around md:justify-start space-x-2 md:space-x-0 md:space-y-2 w-full">
+                    <NavItem name="Dashboard" icon={LayoutDashboard} pageKey="dashboard" />
+                    <NavItem name="My Posts" icon={Users} pageKey="profile" />
+                    <NavItem name="New Post" icon={PlusCircle} pageKey="new_post" />
+                    
+                    {/* User Switcher (For demoing different users) */}
+                    <div className="pt-4 mt-4 border-t border-gray-200 hidden md:block">
+                        <h3 className="text-xs uppercase text-gray-400 mb-2">Logged in as:</h3>
+                        <select 
+                            value={currentUserId}
+                            onChange={(e) => setCurrentUserId(parseInt(e.target.value, 10))}
+                            className="w-full text-sm rounded-md border-gray-300 shadow-sm p-2 bg-indigo-50 text-indigo-800 font-semibold"
+                        >
+                            {MOCK_USERS.map(u => (
+                                <option key={u.user_id} value={u.user_id}>{u.username}</option>
+                            ))}
+                        </select>
+                    </div>
+                  </Card>
+                </div>
+
+                {/* Main Content Area */}
+                <div className="md:col-span-2 lg:col-span-3">
+                  {renderContent()}
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        // --- END App.jsx CODE ---
+
+        // Mount the React App to the root element
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
