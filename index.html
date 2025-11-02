@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOOK Hive - Collaborative Reading Community Platform</title>
+    <title>BOOK Hive - Collaborative Reading Community</title>
     <style>
         /* BASE & TYPOGRAPHY */
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #eef4f9; /* Light background */
+            background-color: #eef4f9;
             color: #333;
             line-height: 1.6;
         }
@@ -43,25 +43,55 @@
             opacity: 0.9;
         }
 
-        /* SECTION BOXES */
-        .section-box {
-            background-color: white;
-            padding: 30px;
+        /* SECTION BOXES (Card Style) */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
             margin-bottom: 30px;
-            border-radius: 10px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08); /* Stronger, softer shadow */
         }
 
-        .section-box h2 {
+        .feature-card {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-card h3 {
             color: #4a90e2;
-            border-bottom: 3px solid #f9a825; /* Accent line */
+            margin-top: 0;
+            border-bottom: 2px solid #f9a825;
+            padding-bottom: 8px;
+            font-size: 1.4em;
+        }
+
+        .feature-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-card ul li {
+            padding: 5px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        
+        /* REPORTS SECTION */
+        .reports-section h2 {
+            color: #4a90e2;
+            border-bottom: 3px solid #f9a825;
             padding-bottom: 10px;
             margin-bottom: 25px;
             font-size: 1.8em;
             font-weight: 600;
         }
 
-        /* CALL TO ACTION */
+        /* Call to Action */
         .cta {
             text-align: center;
             padding: 20px 0;
@@ -69,11 +99,11 @@
 
         .cta a {
             display: inline-block;
-            background-color: #2ecc71; /* Accent Green */
+            background-color: #2ecc71;
             color: white;
             padding: 15px 30px;
             text-decoration: none;
-            border-radius: 50px; /* Pill button */
+            border-radius: 50px;
             font-weight: bold;
             font-size: 1.1em;
             transition: background-color 0.3s, transform 0.2s;
@@ -84,28 +114,14 @@
             transform: translateY(-2px);
         }
 
-        /* CODE BLOCK */
-        .code-block {
-            background-color: #2d2d2d; /* Dark background for code */
-            color: #f8f8f2;
-            border: none;
-            padding: 18px;
-            border-radius: 8px;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 0.9em;
-            margin-top: 15px;
-        }
-
-        /* TABLE STYLING (REPORTS) */
+        /* TABLE STYLING */
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
             border: 1px solid #ddd;
             border-radius: 8px;
-            overflow: hidden; /* Ensures border radius applies to headers */
+            overflow: hidden;
         }
 
         table th, table td {
@@ -114,7 +130,7 @@
         }
 
         table th {
-            background-color: #d1e7ff; /* Light blue header */
+            background-color: #d1e7ff;
             color: #333;
             font-weight: 700;
             border-bottom: 2px solid #4a90e2;
@@ -124,61 +140,39 @@
             background-color: #f7f7f7;
         }
         
-        table tbody tr:hover {
-            background-color: #e0f0ff;
-        }
-
         /* FOOTER */
         footer {
             text-align: center;
             padding: 25px;
-            background-color: #34495e; /* Darker Blue-Gray */
+            background-color: #34495e;
             color: #bdc3c7;
             margin-top: 30px;
             font-size: 0.9em;
         }
 
-        /* RESPONSIVE DESIGN (MOBILE) */
+        /* RESPONSIVE TABLE (MOBILE) */
         @media (max-width: 600px) {
             header h1 {
                 font-size: 2em;
             }
-            
             .container {
-                width: 100%;
-                margin: 20px 0;
                 padding: 0 15px;
             }
-
-            .section-box {
-                padding: 20px;
-                margin-bottom: 20px;
-            }
-
-            .section-box h2 {
-                font-size: 1.5em;
-            }
-            
-            /* Stack table columns for better mobile viewing */
             table, thead, tbody, th, td, tr {
                 display: block;
             }
-            
             thead tr {
                 position: absolute;
-                top: -9999px; /* Hide table headers (but not the data) */
+                top: -9999px; 
                 left: -9999px;
             }
-            
             table td {
                 border: none;
                 border-bottom: 1px solid #eee;
                 position: relative;
-                padding-left: 50%; /* Make room for the pseudo-element label */
+                padding-left: 50%;
                 text-align: right;
             }
-            
-            /* Add the column header as a label */
             table td:before {
                 content: attr(data-label);
                 position: absolute;
@@ -190,7 +184,6 @@
                 font-weight: bold;
                 color: #555;
             }
-
             .cta a {
                 width: 100%;
                 box-sizing: border-box;
@@ -202,45 +195,53 @@
 
     <header>
         <h1>📚 BOOK Hive</h1>
-        <p>A Collaborative Reading Community Platform</p>
+        <p>Your Collaborative Reading Community Platform</p>
     </header>
 
     <div class="container">
 
-        <section class="section-box" id="abstract">
-            <h2>✨ Project Abstract: Centralized Reading Data</h2>
-            <p>BOOK Hive addresses the fragmentation of online book content by creating a **secure, centralized relational database** using MySQL. Our objective is to move user-generated content (reviews and summaries) from unstructured sources into a highly organized system that enforces **data integrity** between user profiles, book records, and posts. This robust foundation supports efficient queries and powerful community analytics.</p>
-            <div class="cta">
-                <a href="#">Explore the Hive (Mock Login Page)</a>
+        <div class="cta">
+            <a href="#">Secure Login / New Account Registration</a>
+        </div>
+        
+        <hr style="border: 0; border-top: 1px solid #ccc; margin: 30px 0;">
+
+        <section class="reports-section">
+            <h2>💡 Key Platform Features</h2>
+            <div class="feature-grid">
+                
+                <div class="feature-card">
+                    <h3>👥 Secure User Management</h3>
+                    <ul>
+                        <li><span style="color: #2ecc71;">✓</span> **Centralized Authentication:** One account for all activities.</li>
+                        <li><span style="color: #2ecc71;">✓</span> **Hashed Passwords:** Secure storage of credentials (`password_hash` CHAR(60)).</li>
+                        <li><span style="color: #2ecc71;">✓</span> **User Profile:** Fetch complete posting history instantly.</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>📝 Structured Content Creation</h3>
+                    <ul>
+                        <li><span style="color: #2ecc71;">✓</span> **Post Type Enforcement:** Mandatory selection of Summary or Review.</li>
+                        <li><span style="color: #2ecc71;">✓</span> **Rating System:** Optional 1-5 star rating for Reviews.</li>
+                        <li><span style="color: #2ecc71;">✓</span> **Book Linking:** All content tied to a valid Book (via `book_isbn` FK).</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>🔍 Efficient Data Retrieval</h3>
+                    <ul>
+                        <li><span style="color: #2ecc71;">✓</span> **Report Generation:** Quick retrieval of top trends (e.g., Top 10 Books).</li>
+                        <li><span style="color: #2ecc71;">✓</span> **Real-Time Filtering:** Sort content by author, genre, or popularity.</li>
+                        <li><span style="color: #2ecc71;">✓</span> **Data Integrity:** Foreign Keys prevent broken content links.</li>
+                    </ul>
+                </div>
+
             </div>
         </section>
 
-        <hr>
-
-        <section class="section-box" id="design">
-            <h2>⚙️ Core Relational Design (User, Book, Post)</h2>
-            <p>The system is built on a highly normalized schema featuring clear **one-to-many (1:N)** relationships. This structure ensures every post is reliably linked to an authenticated author and a valid book entry, preventing 'orphaned' content.</p>
-            
-            <h3>Post Table DDL Example</h3>
-            <div class="code-block">
-                CREATE TABLE Post (<br>
-                &nbsp;&nbsp;post_id INT PRIMARY KEY AUTO_INCREMENT,<br>
-                &nbsp;&nbsp;user_id INT NOT NULL, /* FK to User */<br>
-                &nbsp;&nbsp;book_isbn CHAR(13) NOT NULL, /* FK to Book */<br>
-                &nbsp;&nbsp;post_type ENUM('Summary', 'Review') NOT NULL,<br>
-                &nbsp;&nbsp;content_text TEXT NOT NULL,<br>
-                &nbsp;&nbsp;rating INT,<br>
-                &nbsp;&nbsp;FOREIGN KEY (user_id) REFERENCES User(user_id) ON DELETE CASCADE,<br>
-                &nbsp;&nbsp;FOREIGN KEY (book_isbn) REFERENCES Book(book_isbn) ON DELETE RESTRICT<br>
-                );
-            </div>
-        </section>
-
-        <hr>
-
-        <section class="section-box" id="reports">
-            <h2>📊 Community Reports: Top 5 Most Reviewed Books</h2>
-            <p>The database facilitates quick generation of valuable community metrics, essential for administration and user discovery.</p>
+        <section class="reports-section" id="reports">
+            <h2>📈 Trending: Top 5 Most Reviewed Books</h2>
             
             <table>
                 <thead>
@@ -271,22 +272,38 @@
                         <td data-label="Avg. Rating">4.19</td>
                     </tr>
                     <tr>
-                        <td data-label="Book Title">(The next most popular book)</td>
-                        <td data-label="Author">(Next Author)</td>
+                        <td data-label="Book Title">The Four Winds</td>
+                        <td data-label="Author">Kristin Hannah</td>
                         <td data-label="Total Reviews">280</td>
                         <td data-label="Avg. Rating">4.05</td>
                     </tr>
                     <tr>
-                        <td data-label="Book Title">(The fifth most popular book)</td>
-                        <td data-label="Author">(Fifth Author)</td>
+                        <td data-label="Book Title">Klara and the Sun</td>
+                        <td data-label="Author">Kazuo Ishiguro</td>
                         <td data-label="Total Reviews">255</td>
                         <td data-label="Avg. Rating">4.22</td>
                     </tr>
                 </tbody>
             </table>
 
-            <p style="margin-top: 20px; font-size: 0.9em; color: #555;">*Report generated via SQL Joins and the Aggregate functions COUNT() and AVG().</p>
+        </section>
 
+        <section class="reports-section" id="preview">
+            <h2>👤 Reader Profile Preview (Query Results)</h2>
+            <p>**Viewing all posts by user: `bookworm_max`**</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>Review: Project Hail Mary (Rating: 5/5)</h3>
+                    <p style="font-style: italic;">"Absolutely brilliant. The science was captivating, and the dialogue was genuinely funny. A must-read for any sci-fi fan."</p>
+                    <small>Posted on 2025-11-01</small>
+                </div>
+                <div class="feature-card">
+                    <h3>Summary: The Midnight Library</h3>
+                    <p style="font-style: italic;">"A concise plot summary covering Nora's journey through different parallel lives. A great starting point before diving into the full book."</p>
+                    <small>Posted on 2025-10-15</small>
+                </div>
+            </div>
         </section>
 
     </div>
