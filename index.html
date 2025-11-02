@@ -226,7 +226,8 @@
             const user = MOCK_USERS.find(u => u.user_id === currentUserId);
             if (!user) {
               setIsError(true);
-              setMessage('Authentication error. Cannot find user.');
+              // Use custom message instead of alert
+              setMessage('Authentication error. Cannot find user.'); 
               return;
             }
 
